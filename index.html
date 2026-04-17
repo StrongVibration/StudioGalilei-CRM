@@ -52,6 +52,7 @@ header{
 .cchip[data-c=COLD].on{background:rgba(96,165,250,.2);border-color:var(--cold);color:#bfdbfe}
 .cchip[data-c=DARK].on{background:rgba(75,85,99,.25);border-color:var(--dark);color:#9ca3af}
 .cchip[data-c=NONE].on{background:rgba(37,45,58,.4);border-color:#3a4560;color:#6b7899}
+.cchip[data-c=ma].on{background:rgba(244,63,94,.2);border-color:#f43f5e;color:#fda4af}
 .csep{width:0.5px;height:16px;background:var(--dim);flex-shrink:0}
 
 /* ── STAGE ── */
@@ -168,7 +169,7 @@ header{
 <body>
 
 <header>
-  <div class="logo">Studio<em>Galilie</em> · Relation CRM</div>
+  <div class="logo">Studio<em>Galilei</em> · Relation CRM</div>
   <button id="syncbtn" onclick="syncAndRefresh()" style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;border:0.5px solid rgba(59,130,246,.4);background:rgba(59,130,246,.12);color:#93c5fd;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px;flex-shrink:0">
     <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14 8A6 6 0 1 1 8 2"/><polyline points="14 2 14 8 8 8"/></svg>
     동기화
@@ -194,6 +195,8 @@ header{
   <button class="cchip" data-c="COLD" onclick="setCat('COLD')">COLD</button>
   <button class="cchip" data-c="DARK" onclick="setCat('DARK')">DARK</button>
   <button class="cchip" data-c="NONE" onclick="setCat('NONE')">미접촉</button>
+  <div class="csep"></div>
+  <button class="cchip" data-c="ma" onclick="setCat('ma')">M&A</button>
 </div>
 
 <div id="stage">
@@ -209,6 +212,7 @@ header{
   <div class="lrow"><div class="ldotc" style="background:var(--b2b)"></div>B2B 기업</div>
   <div class="lrow"><div class="ldotc" style="background:var(--b2c)"></div>B2C 파트너</div>
   <div class="lrow"><div class="ldotc" style="background:var(--vc)"></div>VC 투자</div>
+  <div class="lrow"><div class="ldotc" style="background:#f43f5e"></div>M&A 인수·설립</div>
   <div class="lsep"></div>
   <div class="ltit">관계 온도</div>
   <div class="lrow"><div class="ldotc" style="background:var(--hot)"></div>HOT</div>
@@ -241,8 +245,8 @@ header{
 // ═══════════════════════════════════════════════════════
 const TC={HOT:'#ef4444',WARM:'#f59e0b',COLD:'#60a5fa',DARK:'#4b5563',NONE:'#2a3448'};
 const RS={HOT:44,WARM:36,COLD:28,DARK:20,NONE:15};
-const CAT_COLOR={b2g:'#3b82f6',b2b:'#10b981',b2c:'#f59e0b',vc:'#a855f7'};
-const CAT_NAME={b2g:'B2G',b2b:'B2B',b2c:'B2C',vc:'VC'};
+const CAT_COLOR={b2g:'#3b82f6',b2b:'#10b981',b2c:'#f59e0b',vc:'#a855f7',ma:'#f43f5e'};
+const CAT_NAME={b2g:'B2G',b2b:'B2B',b2c:'B2C',vc:'VC',ma:'M&A'};
 
 // ── B2G 구조 ──────────────────────────────────────────
 const MINISTRIES=[
@@ -272,39 +276,14 @@ const REGIONS=[
   {id:'jeju',name:'제주특별자치도',short:'제주',subs:['제주시','서귀포시']},
 ];
 
-// ── 담당자 데이터 (B2G + B2B + B2C + VC) ─────────────
-const CONTACTS = {
-  // B2G 중앙부처
-  'molit':[{id:'c_molit1',catId:'b2g',name:'박민준',title:'스마트교통과 사무관',phone:'010-1111-2222',email:'mj.park@molit.go.kr',sns:'kakao: mjpark92',owner:'김철수',temp:'HOT',memo:'DRT 국가계획 반영 핵심.',touches:[{date:'2025-04-10',type:'미팅',who:'김철수',text:'DRT 국가계획 반영 논의',next:'예산 배정 공문 (5/20)',c:'#ef4444'},{date:'2025-03-15',type:'이메일',who:'김철수',text:'스마트 교통 제안서 제출',next:'',c:'#f59e0b'}]}],
-  'mcst':[{id:'c_mcst1',catId:'b2g',name:'최지원',title:'관광정책과 주무관',phone:'010-3333-4444',email:'jw.choi@mcst.go.kr',sns:'',owner:'이영희',temp:'WARM',memo:'관광 DRT 파일럿 담당.',touches:[{date:'2025-04-05',type:'미팅',who:'이영희',text:'관광약자 이동지원 논의',next:'기획안 초안 (5/10)',c:'#f59e0b'}]}],
-  'me':[{id:'c_me1',catId:'b2g',name:'김환경',title:'기후대응정책과 사무관',phone:'010-4444-5555',email:'hk.kim@me.go.kr',sns:'',owner:'박준혁',temp:'COLD',memo:'탄소중립 교통 관심.',touches:[{date:'2025-04-01',type:'이메일',who:'박준혁',text:'친환경 DRT 관련 문의',next:'',c:'#60a5fa'}]}],
-  'mafra':[{id:'c_mafra1',catId:'b2g',name:'정농촌',title:'농촌개발과 사무관',phone:'010-5555-6666',email:'nr.jung@mafra.go.kr',sns:'',owner:'박준혁',temp:'COLD',memo:'농촌 교통약자 이동 지원.',touches:[]}],
-  // B2G 지자체
-  '수원시':[{id:'c_suwon1',catId:'b2g',name:'홍길동',title:'교통정책과 팀장',phone:'010-6666-7777',email:'hong@suwon.go.kr',sns:'kakao: honggildong',owner:'김철수',temp:'HOT',memo:'경기도 DRT 수원 핵심.',touches:[{date:'2025-04-11',type:'미팅',who:'김철수',text:'계약 조건 최종 협의',next:'계약서 초안 (4/18)',c:'#ef4444'},{date:'2025-03-22',type:'이메일',who:'김철수',text:'3개 노선안 제안서',next:'',c:'#f59e0b'}]}],
-  '성남시':[{id:'c_seongnam1',catId:'b2g',name:'이민아',title:'스마트교통팀 주임',phone:'010-7777-8888',email:'mina@seongnam.go.kr',sns:'',owner:'이영희',temp:'WARM',memo:'판교 DRT 실무.',touches:[{date:'2025-04-08',type:'전화',who:'이영희',text:'미팅 일정 조율',next:'제안서 발송 (5/1)',c:'#f59e0b'}]}],
-  '고양시':[{id:'c_goyang1',catId:'b2g',name:'박고양',title:'교통행정과 담당',phone:'010-8888-9999',email:'gy.park@goyang.go.kr',sns:'',owner:'김철수',temp:'HOT',memo:'GTX 연계 DRT.',touches:[{date:'2025-04-09',type:'미팅',who:'김철수',text:'GTX 연계 DRT 노선 협의',next:'사업계획서 제출 (5/15)',c:'#ef4444'}]}],
-  '여수시':[{id:'c_yeosu1',catId:'b2g',name:'이민수',title:'교통건설국 주무관',phone:'010-1234-5678',email:'ms.lee@yeosu.go.kr',sns:'',owner:'이영희',temp:'HOT',memo:'도서지역 DRT 실증.',touches:[{date:'2025-04-08',type:'미팅',who:'이영희',text:'도서산간 교통 실증',next:'노선 3개 확정 (5/18)',c:'#ef4444'}]}],
-  '서귀포시':[{id:'c_sjp1',catId:'b2g',name:'강서귀',title:'교통과 팀장',phone:'010-9876-5432',email:'sgp@jeju.go.kr',sns:'',owner:'박준혁',temp:'WARM',memo:'제주 관광 DRT.',touches:[{date:'2025-03-30',type:'미팅',who:'박준혁',text:'관광객 이동 DRT 논의',next:'',c:'#f59e0b'}]}],
-  // B2B
-  '__hyundai':[{id:'c_hd1',catId:'b2b',name:'이준호',title:'SDV전략팀 수석',phone:'010-4567-8901',email:'jh.lee@hyundai.com',sns:'linkedin: jh-lee',owner:'김철수',temp:'HOT',memo:'공동개발 MOU 핵심.',touches:[{date:'2025-04-10',type:'미팅',who:'김철수, 이영희',text:'SDV 연계 플랫폼 공동개발 논의',next:'MOU 초안 작성 (5/5)',c:'#ef4444'},{date:'2025-03-15',type:'미팅',who:'김철수',text:'기술 데모 시연',next:'',c:'#f59e0b'}]},{id:'c_hd2',catId:'b2b',name:'윤현대',title:'전략기획팀 과장',phone:'010-5678-9012',email:'hd.yoon@hyundai.com',sns:'',owner:'박준혁',temp:'WARM',memo:'계약·법무 실무.',touches:[{date:'2025-04-05',type:'이메일',who:'박준혁',text:'계약 조건 초안 공유',next:'',c:'#f59e0b'}]}],
-  '__kakao':[{id:'c_kakao1',catId:'b2b',name:'정수연',title:'파트너십팀 PM',phone:'010-6789-0123',email:'sy.jung@kakaomobility.com',sns:'kakao: jungsy',owner:'이영희',temp:'WARM',memo:'API 연동 PoC 검토.',touches:[{date:'2025-04-05',type:'미팅',who:'이영희',text:'데이터 연동 가능성 협의',next:'API 연동 PoC 제안서',c:'#f59e0b'}]}],
-  '__kt':[{id:'c_kt1',catId:'b2b',name:'오통신',title:'스마트시티팀 부장',phone:'010-7890-1234',email:'ts.oh@kt.com',sns:'',owner:'박준혁',temp:'WARM',memo:'IoT 인프라 연계.',touches:[{date:'2025-03-25',type:'미팅',who:'박준혁',text:'IoT 기반 DRT 인프라 논의',next:'',c:'#f59e0b'}]}],
-  '__lh':[{id:'c_lh1',catId:'b2b',name:'한공사',title:'신도시사업팀 차장',phone:'010-8901-2345',email:'gs.han@lh.or.kr',sns:'',owner:'김철수',temp:'COLD',memo:'3기 신도시 DRT.',touches:[]}],
-  '__naver':[{id:'c_nv1',catId:'b2b',name:'나클라우드',title:'파트너십 담당',phone:'',email:'cloud@navercorp.com',sns:'',owner:'',temp:'DARK',memo:'초기 문의 후 연락 없음.',touches:[]}],
-  '__korail':[{id:'c_kr1',catId:'b2b',name:'철도연계',title:'라스트마일팀 과장',phone:'010-1122-3344',email:'lm@korail.com',sns:'',owner:'이영희',temp:'COLD',memo:'라스트마일 연계 모델.',touches:[]}],
-  // B2C
-  '__ceragem':[{id:'c_cg1',catId:'b2c',name:'김태현',title:'사업개발팀 팀장',phone:'010-9012-3456',email:'th.kim@ceragem.com',sns:'kakao: thkim_cg',owner:'이영희',temp:'WARM',memo:'웰니스 고객 이동 서비스.',touches:[{date:'2025-04-07',type:'미팅',who:'이영희',text:'헬스케어 고객 이동 서비스 협의',next:'서비스 패키지 기획안',c:'#f59e0b'},{date:'2025-03-10',type:'이메일',who:'이영희',text:'파트너십 제안서 수신',next:'',c:'#60a5fa'}]}],
-  '__gs':[{id:'c_gs1',catId:'b2c',name:'오상훈',title:'신사업팀 부장',phone:'010-0123-4567',email:'sh.oh@gsretail.com',sns:'',owner:'김철수',temp:'WARM',memo:'GS25 편의점 픽업 DRT.',touches:[{date:'2025-04-09',type:'미팅',who:'김철수',text:'GS25 연계 라스트마일 딜리버리 논의',next:'',c:'#f59e0b'}]}],
-  '__pline':[{id:'c_pl1',catId:'b2c',name:'이상철',title:'대표이사',phone:'010-1357-2468',email:'sc.lee@pline.co.kr',sns:'kakao: ceo_pline',owner:'이영희',temp:'HOT',memo:'공동 운수사 설립 최종.',touches:[{date:'2025-04-11',type:'미팅',who:'이영희, 김철수',text:'운수사 합작법인 설립 최종 논의',next:'법인 설립 서류 (4/20)',c:'#ef4444'},{date:'2025-03-28',type:'미팅',who:'이영희',text:'차량 공급·운영 모델 협의',next:'',c:'#f59e0b'}]}],
-  '__ypbook':[{id:'c_yp1',catId:'b2c',name:'이책방',title:'신사업팀 담당',phone:'010-2468-1357',email:'book@ypbooks.co.kr',sns:'',owner:'박준혁',temp:'COLD',memo:'예산 미확정.',touches:[{date:'2025-03-20',type:'이메일',who:'박준혁',text:'도심 방문객 이동 서비스 문의 응대',next:'',c:'#60a5fa'}]}],
-  // VC
-  '__bluepoint':[{id:'c_bp1',catId:'vc',name:'박수환',title:'파트너',phone:'010-3579-1234',email:'sh.park@bluepoint.kr',sns:'linkedin: suhwan-park',owner:'김철수',temp:'HOT',memo:'시리즈A 텀시트 협의.',touches:[{date:'2025-04-10',type:'미팅',who:'김철수, 대표',text:'시리즈A 투자 조건 최종 협의',next:'텀시트 재협상 (5/15)',c:'#ef4444'},{date:'2025-03-20',type:'미팅',who:'김철수',text:'IR 덱 발표',next:'',c:'#f59e0b'},{date:'2025-02-15',type:'미팅',who:'김철수',text:'첫 IR 미팅',next:'',c:'#60a5fa'}]}],
-  '__gsglobal':[{id:'c_gg1',catId:'vc',name:'최민혁',title:'투자팀 상무',phone:'010-4680-2345',email:'mh.choi@gsglobal.com',sns:'',owner:'이영희',temp:'WARM',memo:'전략적 투자 가능성 논의.',touches:[{date:'2025-04-08',type:'미팅',who:'이영희',text:'GS그룹 시너지 모델 발표',next:'전략적 투자 조건 논의 (5/28)',c:'#f59e0b'}]}],
-  '__kv':[{id:'c_kv1',catId:'vc',name:'김벤처',title:'펀드매니저',phone:'010-5791-3456',email:'vc.kim@kvic.or.kr',sns:'',owner:'박준혁',temp:'COLD',memo:'모태펀드 연계 가능성.',touches:[]}],
-  '__lotte':[{id:'c_lt1',catId:'vc',name:'정롯데',title:'투자심사역',phone:'',email:'lv.jung@lotteventures.com',sns:'',owner:'',temp:'DARK',memo:'명함 수령. 후속 연락 없음.',touches:[]}],
-};
+// ── 담당자 데이터 — Sheets에서 로드 (비어있음이 정상)
+const CONTACTS = {};
 
 // B2B·B2C·VC 기관 목록
+const MA_ORGS=[
+  {id:'__ma1',name:'운수사 인수 대상',sub:'M&A'},
+  {id:'__ma2',name:'자회사 설립',sub:'M&A'},
+];
 const B2B_ORGS=[
   {id:'__hyundai',name:'현대자동차',sub:'완성차'},
   {id:'__kakao',name:'카카오모빌리티',sub:'플랫폼'},
@@ -561,6 +540,7 @@ function spawnRoot(){
     {id:'b2b',label:'B2B',shortName:'B2B',subLabel:'기업',cnt:B2B_ORGS.reduce((s,o)=>s+(CONTACTS[o.id]||[]).length,0)},
     {id:'b2c',label:'B2C',shortName:'B2C',subLabel:'파트너',cnt:B2C_ORGS.reduce((s,o)=>s+(CONTACTS[o.id]||[]).length,0)},
     {id:'vc', label:'VC', shortName:'VC', subLabel:'투자',cnt:VC_ORGS.reduce((s,o)=>s+(CONTACTS[o.id]||[]).length,0)},
+    {id:'ma', label:'M&A',shortName:'M&A',subLabel:'인수·설립',cnt:MA_ORGS.reduce((s,o)=>s+(CONTACTS[o.id]||[]).length,0)},
   ];
   const spread=Math.min(W,H)*.3;
   cats.forEach((cat,i)=>{
@@ -600,7 +580,7 @@ function drillCat(catId){
     placeRing(items,spread,{});
   } else {
     // B2B / B2C / VC: 기관 버블
-    const orgList={b2b:B2B_ORGS,b2c:B2C_ORGS,vc:VC_ORGS}[catId]||[];
+    const orgList={b2b:B2B_ORGS,b2c:B2C_ORGS,vc:VC_ORGS,ma:MA_ORGS}[catId]||[];
     const spread=Math.min(W,H)*.3;
     const items=orgList.map(o=>{
       const cts=CONTACTS[o.id]||[];
@@ -806,8 +786,9 @@ function setCat(c){
     if(reg)drillSub(sub,reg.id);
   } else if(lv.startsWith('org_')) {
     const orgId=lv.slice(4);
-    const catId=ALL_CONTACTS.find(c=>Object.entries(CONTACTS).find(([k,v])=>k===orgId&&v.includes(c)))?.[0]?.catId||'b2b';
-    drillOrg(orgId,catId);
+    const allOrgs=[...B2B_ORGS.map(o=>({...o,cat:'b2b'})),...B2C_ORGS.map(o=>({...o,cat:'b2c'})),...VC_ORGS.map(o=>({...o,cat:'vc'})),...MA_ORGS.map(o=>({...o,cat:'ma'}))];
+    const found=allOrgs.find(o=>o.id===orgId);
+    drillOrg(orgId,found?.cat||'b2b');
   }
 }
 
